@@ -1,7 +1,7 @@
 import { Issue } from "@/contexts/IssuesContext";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ThumbsUp, MapPin, Calendar, DollarSign, AlertTriangle, AlertCircle, Leaf } from "lucide-react";
+import { ThumbsUp, MapPin, Calendar, AlertTriangle, AlertCircle, Leaf } from "lucide-react";
 import { analyzePriority } from "@/contexts/IssuesContext";
 
 interface IssueCardProps {
@@ -24,7 +24,7 @@ export default function IssueCard({ issue, onSupport, onViewDetails }: IssueCard
 
   return (
     <Card
-      className="p-4 border-l-4 hover:shadow-md transition-all cursor-pointer"
+      className="p-4 border-l-4 hover:shadow-lg hover:shadow-cyan-500/20 transition-all cursor-pointer bg-slate-800/50 border-slate-700"
       style={{ borderLeftColor: config.color }}
       onClick={() => onViewDetails?.(issue)}
     >
@@ -34,14 +34,14 @@ export default function IssueCard({ issue, onSupport, onViewDetails }: IssueCard
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
               <Icon className="w-4 h-4" style={{ color: config.color }} />
-              <span className="text-xs font-semibold text-slate-600">{config.label}</span>
+              <span className="text-xs font-semibold text-slate-400">{config.label}</span>
             </div>
-            <h3 className="font-bold text-slate-900 line-clamp-2">{issue.title}</h3>
+            <h3 className="font-bold text-slate-100 line-clamp-2">{issue.title}</h3>
           </div>
           {/* Priority Ring */}
           <div className="relative w-16 h-16 flex-shrink-0">
             <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-              <circle cx="18" cy="18" r="15.915" fill="none" stroke="#e5e7eb" strokeWidth="2" />
+              <circle cx="18" cy="18" r="15.915" fill="none" stroke="#334155" strokeWidth="2" />
               <circle
                 cx="18"
                 cy="18"
@@ -54,16 +54,23 @@ export default function IssueCard({ issue, onSupport, onViewDetails }: IssueCard
               />
             </svg>
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-xs font-bold text-slate-700">{Math.round(priorityScore)}</span>
+              <span className="text-xs font-bold text-slate-300">{Math.round(priorityScore)}</span>
             </div>
           </div>
         </div>
 
         {/* Description */}
-        <p className="text-sm text-slate-600 line-clamp-2">{issue.description}</p>
+        <p className="text-sm text-slate-400 line-clamp-2">{issue.description}</p>
+
+        {/* Photo if available */}
+        {issue.photoUrl && (
+          <div className="rounded-lg overflow-hidden h-24 bg-slate-700">
+            <img src={issue.photoUrl} alt="Issue" className="w-full h-full object-cover" />
+          </div>
+        )}
 
         {/* Metadata */}
-        <div className="grid grid-cols-3 gap-2 text-xs text-slate-600">
+        <div className="grid grid-cols-2 gap-2 text-xs text-slate-500">
           <div className="flex items-center gap-1">
             <MapPin className="w-3 h-3" />
             <span className="truncate">{issue.residential_complex}</span>
@@ -71,10 +78,6 @@ export default function IssueCard({ issue, onSupport, onViewDetails }: IssueCard
           <div className="flex items-center gap-1">
             <Calendar className="w-3 h-3" />
             <span>{issue.issueAge}д назад</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <DollarSign className="w-3 h-3" />
-            <span>{(issue.budgetCost / 1000).toFixed(0)}k</span>
           </div>
         </div>
 
@@ -86,7 +89,11 @@ export default function IssueCard({ issue, onSupport, onViewDetails }: IssueCard
           }}
           variant={issue.userSupported ? "default" : "outline"}
           size="sm"
-          className="w-full"
+          className={`w-full ${
+            issue.userSupported
+              ? "bg-cyan-600 hover:bg-cyan-700 text-white"
+              : "border-slate-600 text-slate-300 hover:bg-slate-700"
+          }`}
         >
           <ThumbsUp className="w-4 h-4 mr-2" />
           <span>{issue.supportCount}</span>

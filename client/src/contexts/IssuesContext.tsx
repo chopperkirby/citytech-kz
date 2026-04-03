@@ -1,110 +1,7 @@
 import React, { createContext, useState, useContext, ReactNode } from "react";
 
-// Mock issues data
-const MOCK_ISSUES_DATA = [
-  {
-    id: "1",
-    title: "Большая яма на ул. Абая, 45",
-    description: "Опасная яма на проезжей части возле дома 45",
-    category: "warning" as const,
-    location: { lat: 43.238949, lng: 76.938642 },
-    address: "ул. Абая, 45, Алматы",
-    residential_complex: "ЖК Абай Парк",
-    street: "ул. Абая",
-    house: "45",
-    entrance: "А",
-    supportCount: 12,
-    issueAge: 3,
-    budgetCost: 50000,
-    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-    userSupported: false,
-  },
-  {
-    id: "2",
-    title: "Отключение электричества в ЖК Нур-Астана",
-    description: "Нет электричества в подъездах 1-3 уже 2 дня",
-    category: "critical" as const,
-    location: { lat: 43.239, lng: 76.939 },
-    address: "ЖК Нур-Астана, Алматы",
-    residential_complex: "ЖК Нур-Астана",
-    street: "ул. Абая",
-    house: "50",
-    entrance: "Б",
-    supportCount: 28,
-    issueAge: 2,
-    budgetCost: 200000,
-    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-    userSupported: false,
-  },
-  {
-    id: "3",
-    title: "Нужна покраска детской площадки",
-    description: "Краска облезает, нужно перекрасить",
-    category: "community" as const,
-    location: { lat: 43.237, lng: 76.94 },
-    address: "Парк ЖК Абай, Алматы",
-    residential_complex: "ЖК Абай Парк",
-    street: "ул. Абая",
-    house: "40",
-    entrance: "В",
-    supportCount: 5,
-    issueAge: 7,
-    budgetCost: 30000,
-    createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-    userSupported: false,
-  },
-  {
-    id: "4",
-    title: "Сломанный фонарь на ул. Панфилова",
-    description: "Уличный фонарь не работает, темно ночью",
-    category: "warning" as const,
-    location: { lat: 43.24, lng: 76.937 },
-    address: "ул. Панфилова, 12, Алматы",
-    residential_complex: "ЖК Панфилов",
-    street: "ул. Панфилова",
-    house: "12",
-    entrance: "А",
-    supportCount: 8,
-    issueAge: 5,
-    budgetCost: 15000,
-    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-    userSupported: false,
-  },
-  {
-    id: "5",
-    title: "Засор в системе водоснабжения",
-    description: "Низкое давление воды в доме",
-    category: "critical" as const,
-    location: { lat: 43.236, lng: 76.941 },
-    address: "ул. Абая, 35, Алматы",
-    residential_complex: "ЖК Абай Парк",
-    street: "ул. Абая",
-    house: "35",
-    entrance: "Г",
-    supportCount: 15,
-    issueAge: 1,
-    budgetCost: 120000,
-    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-    userSupported: false,
-  },
-  {
-    id: "6",
-    title: "Озеленение парка ЖК Нур-Астана",
-    description: "Нужно посадить больше деревьев и кустов",
-    category: "community" as const,
-    location: { lat: 43.2395, lng: 76.9385 },
-    address: "Парк ЖК Нур-Астана, Алматы",
-    residential_complex: "ЖК Нур-Астана",
-    street: "ул. Абая",
-    house: "50",
-    entrance: "Б",
-    supportCount: 3,
-    issueAge: 10,
-    budgetCost: 500000,
-    createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
-    userSupported: false,
-  },
-];
+// Start with empty issues array
+const MOCK_ISSUES_DATA: Issue[] = [];
 
 export interface Issue {
   id: string;
@@ -119,9 +16,10 @@ export interface Issue {
   entrance: string;
   supportCount: number;
   issueAge: number;
-  budgetCost: number;
   createdAt: Date;
   userSupported: boolean;
+  photoUrl?: string;
+  userDescription?: string;
 }
 
 interface IssuesContextType {
@@ -153,10 +51,9 @@ export function analyzePriority(issue: Issue): number {
   // Normalize components to 0-100 scale
   const supportScore = Math.min(issue.supportCount * 5, 100); // Each support = 5 points
   const ageScore = Math.min(issue.issueAge * 3, 100); // Each day = 3 points
-  const budgetScore = Math.min((issue.budgetCost / 10000) * 2, 100); // Every 10k budget = 2 points
 
-  // Weighted average: support (40%), age (30%), budget (30%)
-  const baseScore = supportScore * 0.4 + ageScore * 0.3 + budgetScore * 0.3;
+  // Weighted average: support (60%), age (40%)
+  const baseScore = supportScore * 0.6 + ageScore * 0.4;
 
   return baseScore * categoryMultiplier;
 }

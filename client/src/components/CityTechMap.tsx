@@ -60,8 +60,8 @@ export default function CityTechMap({ issues, onClusterClick, selectedCluster, o
 
       // Create cluster marker
       const html = `
-        <div class="flex items-center justify-center w-12 h-12 rounded-full font-bold text-white text-sm shadow-lg"
-             style="background-color: ${clusterColor}; border: 3px solid white;">
+        <div class="flex items-center justify-center w-12 h-12 rounded-full font-bold text-white text-sm shadow-lg border-2 border-white"
+             style="background-color: ${clusterColor}; box-shadow: 0 0 20px ${clusterColor}80;">
           ${clusterIssues.length}
         </div>
       `;
@@ -106,12 +106,12 @@ export default function CityTechMap({ issues, onClusterClick, selectedCluster, o
 
       {/* Side Panel for Selected Cluster */}
       {selectedCluster && selectedCluster.length > 0 && (
-        <div className="absolute top-4 right-4 w-80 max-h-96 bg-white rounded-lg shadow-xl overflow-hidden flex flex-col z-50">
-          <div className="flex items-center justify-between p-4 border-b">
-            <h3 className="font-bold text-slate-900">Проблемы в районе ({selectedCluster.length})</h3>
+        <div className="absolute top-4 right-4 w-80 max-h-96 bg-slate-900/95 backdrop-blur rounded-lg shadow-2xl overflow-hidden flex flex-col z-50 border border-slate-700">
+          <div className="flex items-center justify-between p-4 border-b border-slate-700 bg-slate-800/50">
+            <h3 className="font-bold text-slate-100">Проблемы в районе ({selectedCluster.length})</h3>
             <button
               onClick={onClusterClose}
-              className="p-1 hover:bg-slate-100 rounded-lg transition-colors"
+              className="p-1 hover:bg-slate-700 rounded-lg transition-colors text-slate-400"
             >
               <X className="w-4 h-4" />
             </button>
@@ -124,16 +124,16 @@ export default function CityTechMap({ issues, onClusterClick, selectedCluster, o
               return (
                 <div
                   key={issue.id}
-                  className="p-3 border-l-4 rounded bg-slate-50 hover:bg-slate-100 transition-colors"
+                  className="p-3 border-l-4 rounded bg-slate-800/50 hover:bg-slate-800 transition-colors border-slate-700"
                   style={{ borderLeftColor: config.color }}
                 >
                   <div className="flex items-start gap-2">
                     <Icon className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: config.color }} />
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-sm text-slate-900 line-clamp-2">{issue.title}</p>
-                      <p className="text-xs text-slate-600 mt-1">{issue.address}</p>
+                      <p className="font-semibold text-sm text-slate-100 line-clamp-2">{issue.title}</p>
+                      <p className="text-xs text-slate-400 mt-1">{issue.address}</p>
                       <div className="flex items-center gap-2 mt-2">
-                        <span className="inline-block px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded">
+                        <span className="inline-block px-2 py-0.5 bg-cyan-900/50 text-cyan-300 text-xs rounded border border-cyan-700">
                           {issue.supportCount} голосов
                         </span>
                       </div>
