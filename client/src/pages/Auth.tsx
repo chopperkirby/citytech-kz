@@ -4,7 +4,7 @@ import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { AlertCircle, ArrowRight, Zap } from "lucide-react";
+import { AlertCircle, ArrowRight, Zap, Loader2 } from "lucide-react";
 
 type AuthMode = "login" | "signup" | "profile";
 
@@ -14,11 +14,8 @@ export default function Auth() {
   const [mode, setMode] = useState<AuthMode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [fullName, setFullName] = useState("");
-  const [residentialComplex, setResidentialComplex] = useState("");
-  const [street, setStreet] = useState("");
-  const [house, setHouse] = useState("");
-  const [entrance, setEntrance] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -53,15 +50,16 @@ export default function Auth() {
   const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    if (!firstName.trim() || !lastName.trim()) {
+      setError("Пожалуйста, заполните имя и фамилию.");
+      return;
+    }
     setLoading(true);
     try {
       await completeProfile({
         email,
-        fullName,
-        residentialComplex,
-        street,
-        house,
-        entrance,
+        firstName,
+        lastName,
       });
       setLocation("/feed");
     } catch (err) {
@@ -79,241 +77,224 @@ export default function Auth() {
         <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl"></div>
       </div>
 
-      <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-8 items-center relative z-10">
-        {/* Hero Section */}
-        <div className="hidden md:flex flex-col justify-center space-y-6 p-8">
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <Zap className="w-8 h-8 text-cyan-400" />
-              <h1 className="text-4xl font-bold text-white">CityTech KZ</h1>
-            </div>
-            <p className="text-xl text-cyan-300">Городские проблемы</p>
-            <p className="text-slate-300 text-lg leading-relaxed">
-              Сообщайте о проблемах инфраструктуры в вашем районе с помощью ИИ-анализа фото и помогайте городу становиться лучше.
-            </p>
-            <div className="space-y-3 pt-4">
-              <div className="flex items-start gap-3">
-                <div className="w-2 h-2 bg-cyan-400 rounded-full mt-2 flex-shrink-0"></div>
-                <p className="text-slate-300">Локальные проблемы вашего ЖК</p>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="w-2 h-2 bg-cyan-400 rounded-full mt-2 flex-shrink-0"></div>
-                <p className="text-slate-300">Городские проблемы по приоритетам</p>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="w-2 h-2 bg-cyan-400 rounded-full mt-2 flex-shrink-0"></div>
-                <p className="text-slate-300">ИИ-анализ фото проблем</p>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="w-2 h-2 bg-cyan-400 rounded-full mt-2 flex-shrink-0"></div>
-                <p className="text-slate-300">Интерактивная карта с кластерами</p>
-              </div>
+      {/* Main Card */}
+      <Card className="w-full max-w-md relative z-10 bg-slate-900/80 backdrop-blur border-slate-700 shadow-2xl">
+        <div className="p-8">
+          {/* Header */}
+          <div className="flex items-center gap-3 mb-8">
+            <Zap className="w-8 h-8 text-cyan-400" />
+            <div>
+              <h1 className="text-2xl font-bold text-white">CityTech KZ</h1>
+              <p className="text-xs text-cyan-400">Городские проблемы</p>
             </div>
           </div>
-        </div>
 
-        {/* Form Section */}
-        <Card className="p-8 shadow-2xl border border-slate-700 bg-slate-900/80 backdrop-blur">
+          {/* Login Form */}
           {mode === "login" && (
-            <form onSubmit={handleLoginSubmit} className="space-y-6">
-              <div className="space-y-2">
-                <h2 className="text-3xl font-bold text-white">Вход</h2>
-                <p className="text-slate-400">Войдите в свой аккаунт</p>
+            <form onSubmit={handleLoginSubmit} className="space-y-4">
+              <h2 className="text-xl font-bold text-white mb-6">Вход</h2>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">Email</label>
+                <Input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="your@email.com"
+                  className="bg-slate-800 border-slate-600 text-white placeholder-slate-500"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">Пароль</label>
+                <Input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="bg-slate-800 border-slate-600 text-white placeholder-slate-500"
+                  required
+                />
               </div>
 
               {error && (
-                <div className="flex items-center gap-2 p-3 bg-red-900/30 border border-red-700 rounded-lg">
-                  <AlertCircle className="w-4 h-4 text-red-400" />
-                  <p className="text-sm text-red-300">{error}</p>
+                <div className="p-3 bg-red-900/30 border border-red-700 rounded-lg flex gap-2 text-red-300 text-sm">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                  <span>{error}</span>
                 </div>
               )}
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-cyan-300">Email</label>
-                <Input
-                  type="email"
-                  placeholder="your@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="bg-slate-800 border-slate-600 text-white placeholder-slate-500"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-cyan-300">Пароль</label>
-                <Input
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="bg-slate-800 border-slate-600 text-white placeholder-slate-500"
-                />
-              </div>
-
-              <Button type="submit" className="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-semibold" disabled={loading}>
-                {loading ? "Загрузка..." : "Войти"}
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-semibold py-2 h-auto"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Загрузка...
+                  </>
+                ) : (
+                  <>
+                    Войти
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </>
+                )}
               </Button>
 
-              <div className="text-center">
-                <p className="text-slate-400 text-sm">
-                  Нет аккаунта?{" "}
-                  <button
-                    type="button"
-                    onClick={() => setMode("signup")}
-                    className="text-cyan-400 hover:text-cyan-300 font-medium"
-                  >
-                    Зарегистрируйтесь
-                  </button>
-                </p>
+              <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-slate-700"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-slate-900 text-slate-400">или</span>
+                </div>
               </div>
+
+              <Button
+                type="button"
+                onClick={() => {
+                  setMode("signup");
+                  setError("");
+                }}
+                variant="outline"
+                className="w-full border-slate-600 text-slate-300 hover:bg-slate-800"
+              >
+                Зарегистрироваться
+              </Button>
             </form>
           )}
 
+          {/* Signup Form */}
           {mode === "signup" && (
-            <form onSubmit={handleSignupSubmit} className="space-y-6">
-              <div className="space-y-2">
-                <h2 className="text-3xl font-bold text-white">Регистрация</h2>
-                <p className="text-slate-400">Создайте новый аккаунт</p>
+            <form onSubmit={handleSignupSubmit} className="space-y-4">
+              <h2 className="text-xl font-bold text-white mb-6">Регистрация</h2>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">Email</label>
+                <Input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="your@email.com"
+                  className="bg-slate-800 border-slate-600 text-white placeholder-slate-500"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">Пароль</label>
+                <Input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="bg-slate-800 border-slate-600 text-white placeholder-slate-500"
+                  required
+                />
               </div>
 
               {error && (
-                <div className="flex items-center gap-2 p-3 bg-red-900/30 border border-red-700 rounded-lg">
-                  <AlertCircle className="w-4 h-4 text-red-400" />
-                  <p className="text-sm text-red-300">{error}</p>
+                <div className="p-3 bg-red-900/30 border border-red-700 rounded-lg flex gap-2 text-red-300 text-sm">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                  <span>{error}</span>
                 </div>
               )}
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-cyan-300">Email</label>
-                <Input
-                  type="email"
-                  placeholder="your@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="bg-slate-800 border-slate-600 text-white placeholder-slate-500"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-cyan-300">Пароль</label>
-                <Input
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="bg-slate-800 border-slate-600 text-white placeholder-slate-500"
-                />
-              </div>
-
-              <Button type="submit" className="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-semibold" disabled={loading}>
-                {loading ? "Загрузка..." : "Зарегистрироваться"}
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-semibold py-2 h-auto"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Загрузка...
+                  </>
+                ) : (
+                  <>
+                    Зарегистрироваться
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </>
+                )}
               </Button>
 
-              <div className="text-center">
-                <p className="text-slate-400 text-sm">
-                  Уже есть аккаунт?{" "}
-                  <button
-                    type="button"
-                    onClick={() => setMode("login")}
-                    className="text-cyan-400 hover:text-cyan-300 font-medium"
-                  >
-                    Войдите
-                  </button>
-                </p>
-              </div>
+              <Button
+                type="button"
+                onClick={() => {
+                  setMode("login");
+                  setError("");
+                }}
+                variant="outline"
+                className="w-full border-slate-600 text-slate-300 hover:bg-slate-800"
+              >
+                Уже есть аккаунт? Войти
+              </Button>
             </form>
           )}
 
+          {/* Profile Completion Form */}
           {mode === "profile" && (
-            <form onSubmit={handleProfileSubmit} className="space-y-6">
-              <div className="space-y-2">
-                <h2 className="text-3xl font-bold text-white">Завершить профиль</h2>
-                <p className="text-slate-400">Укажите адрес вашего проживания</p>
+            <form onSubmit={handleProfileSubmit} className="space-y-4">
+              <h2 className="text-xl font-bold text-white mb-6">Завершить профиль</h2>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">Имя</label>
+                <Input
+                  type="text"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  placeholder="Иван"
+                  className="bg-slate-800 border-slate-600 text-white placeholder-slate-500"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">Фамилия</label>
+                <Input
+                  type="text"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  placeholder="Петров"
+                  className="bg-slate-800 border-slate-600 text-white placeholder-slate-500"
+                  required
+                />
+              </div>
+
+              <div className="p-3 bg-cyan-900/20 border border-cyan-700 rounded-lg text-cyan-300 text-sm">
+                <p>Локацию вы сможете выбрать при подаче заявки</p>
               </div>
 
               {error && (
-                <div className="flex items-center gap-2 p-3 bg-red-900/30 border border-red-700 rounded-lg">
-                  <AlertCircle className="w-4 h-4 text-red-400" />
-                  <p className="text-sm text-red-300">{error}</p>
+                <div className="p-3 bg-red-900/30 border border-red-700 rounded-lg flex gap-2 text-red-300 text-sm">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                  <span>{error}</span>
                 </div>
               )}
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-cyan-300">ФИО</label>
-                <Input
-                  type="text"
-                  placeholder="Иван Иванов"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  required
-                  className="bg-slate-800 border-slate-600 text-white placeholder-slate-500"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-cyan-300">ЖК / Жилой комплекс</label>
-                <Input
-                  type="text"
-                  placeholder="ЖК Абай Парк"
-                  value={residentialComplex}
-                  onChange={(e) => setResidentialComplex(e.target.value)}
-                  required
-                  className="bg-slate-800 border-slate-600 text-white placeholder-slate-500"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-cyan-300">Улица</label>
-                  <Input
-                    type="text"
-                    placeholder="ул. Абая"
-                    value={street}
-                    onChange={(e) => setStreet(e.target.value)}
-                    required
-                    className="bg-slate-800 border-slate-600 text-white placeholder-slate-500"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-cyan-300">Дом</label>
-                  <Input
-                    type="text"
-                    placeholder="45"
-                    value={house}
-                    onChange={(e) => setHouse(e.target.value)}
-                    required
-                    className="bg-slate-800 border-slate-600 text-white placeholder-slate-500"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-cyan-300">Подъезд</label>
-                <Input
-                  type="text"
-                  placeholder="А"
-                  value={entrance}
-                  onChange={(e) => setEntrance(e.target.value)}
-                  required
-                  className="bg-slate-800 border-slate-600 text-white placeholder-slate-500"
-                />
-              </div>
-
-              <Button type="submit" className="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-semibold" disabled={loading}>
-                {loading ? "Загрузка..." : (
-                  <span className="flex items-center justify-center gap-2">
-                    Продолжить <ArrowRight className="w-4 h-4" />
-                  </span>
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-semibold py-2 h-auto"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Загрузка...
+                  </>
+                ) : (
+                  <>
+                    Продолжить
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </>
                 )}
               </Button>
             </form>
           )}
-        </Card>
-      </div>
+        </div>
+      </Card>
     </div>
   );
 }

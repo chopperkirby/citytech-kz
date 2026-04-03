@@ -3,11 +3,8 @@ import React, { createContext, useState, useContext, ReactNode } from "react";
 export interface UserProfile {
   id: string;
   email: string;
-  fullName: string;
-  residentialComplex: string;
-  street: string;
-  house: string;
-  entrance: string;
+  firstName: string;
+  lastName: string;
   createdAt: Date;
 }
 

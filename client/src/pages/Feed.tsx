@@ -27,7 +27,7 @@ export default function Feed() {
     return null;
   }
 
-  const hyperLocalIssues = getHyperLocalIssues(user.residentialComplex, user.street);
+  const hyperLocalIssues = getHyperLocalIssues("Мой ЖК", "Мой район");
   const cityWideIssues = getCityWideIssues();
   
   const activeIssues = issues.filter(i => i.status !== "completed");
@@ -63,10 +63,10 @@ export default function Feed() {
 
           <div className="flex items-center gap-4">
             <div className="text-right hidden sm:block">
-              <p className="text-sm font-medium text-white">{user.fullName}</p>
+              <p className="text-sm font-medium text-white">{user.firstName} {user.lastName}</p>
               <p className="text-xs text-slate-400 flex items-center gap-1">
                 <MapPin className="w-3 h-3" />
-                {user.residentialComplex}
+                Алматы
               </p>
             </div>
 
@@ -203,12 +203,7 @@ export default function Feed() {
       {showSubmitModal && (
         <SubmitIssueModal
           onClose={() => setShowSubmitModal(false)}
-          userLocation={{
-            residentialComplex: user.residentialComplex,
-            street: user.street,
-            house: user.house,
-            entrance: user.entrance,
-          }}
+          city="Алматы"
         />
       )}
 
