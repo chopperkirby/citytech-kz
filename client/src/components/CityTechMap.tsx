@@ -33,7 +33,7 @@ export default function CityTechMap({ issues, onClusterClick, selectedCluster, o
       map.current = L.map(mapContainer.current).setView(ALMATY_CENTER, 13);
 
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: '© OpenStreetMap contributors',
+        attribution: "© OpenStreetMap contributors",
         maxZoom: 19,
       }).addTo(map.current);
     }
@@ -46,33 +46,54 @@ export default function CityTechMap({ issues, onClusterClick, selectedCluster, o
     // Create clusters (group issues by proximity)
     const clusters = createClusters(issues, 0.05); // ~5km clusters
 
-    // Add cluster markers
+    // Add cluster markers with enhanced visualization
     clusters.forEach((clusterIssues, clusterKey) => {
       const [lat, lng] = clusterKey.split(",").map(Number);
       const criticalCount = clusterIssues.filter((i) => i.category === "critical").length;
       const warningCount = clusterIssues.filter((i) => i.category === "warning").length;
       const communityCount = clusterIssues.filter((i) => i.category === "community").length;
+      const totalCount = clusterIssues.length;
 
       // Determine cluster color based on highest severity
       let clusterColor = "#22C55E"; // green
-      if (criticalCount > 0) clusterColor = "#EF4444"; // red
-      else if (warningCount > 0) clusterColor = "#F59E0B"; // amber
+      let glowColor = "#22C55E80";
+      if (criticalCount > 0) {
+        clusterColor = "#EF4444"; // red
+        glowColor = "#EF444480";
+      } else if (warningCount > 0) {
+        clusterColor = "#F59E0B"; // amber
+        glowColor = "#F59E0B80";
+      }
 
-      // Create cluster marker
+      // Size based on problem count
+      const size = Math.min(12 + totalCount * 2, 48);
+
+      // Create cluster marker with glow effect
       const html = `
-        <div class="flex items-center justify-center w-12 h-12 rounded-full font-bold text-white text-sm shadow-lg border-2 border-white"
-             style="background-color: ${clusterColor}; box-shadow: 0 0 20px ${clusterColor}80;">
-          ${clusterIssues.length}
+        <div class="flex items-center justify-center font-bold text-white text-sm shadow-lg border-2 border-white rounded-full" 
+             style="width: ${size}px; height: ${size}px; background-color: ${clusterColor}; box-shadow: 0 0 ${size}px ${glowColor}, 0 0 ${size * 2}px ${glowColor};">
+          ${totalCount}
         </div>
       `;
 
       const marker = L.marker([lat, lng], {
         icon: L.divIcon({
           html,
-          iconSize: [48, 48],
+          iconSize: [size, size],
           className: "cluster-marker",
         }),
       }).addTo(map.current!);
+
+      // Popup with detailed breakdown
+      const popupContent = `
+        <div style="color: white; font-size: 12px;">
+          <div style="font-weight: bold; margin-bottom: 5px;">Проблемы в районе</div>
+          <div>🔴 Критические: ${criticalCount}</div>
+          <div>🟡 Предупреждения: ${warningCount}</div>
+          <div>🟢 Общественные: ${communityCount}</div>
+        </div>
+      `;
+      marker.bindPopup(popupContent);
 
       marker.on("click", () => {
         onClusterClick?.(clusterIssues);

@@ -3,6 +3,15 @@ import React, { createContext, useState, useContext, ReactNode } from "react";
 // Start with empty issues array
 const MOCK_ISSUES_DATA: Issue[] = [];
 
+export interface IssueScoringCriteria {
+  danger: number; // 1-10: опасность
+  location: number; // 1-10: местность (доступность)
+  relevance: number; // 1-10: актуальность
+  scope: number; // 1-10: общирность (масштаб проблемы)
+  timeElapsed: number; // 1-10: время возникновения
+  convenience: number; // 1-10: удобство человека
+}
+
 export interface Issue {
   id: string;
   title: string;
@@ -14,20 +23,34 @@ export interface Issue {
   street: string;
   house: string;
   entrance: string;
+  city: string; // Город (Алматы, Астана и т.д.)
   supportCount: number;
   issueAge: number;
   createdAt: Date;
   userSupported: boolean;
   photoUrl?: string;
   userDescription?: string;
+  status: "new" | "pending_approval" | "in_progress" | "completed";
+  routedTo: "zhkh" | "akimat"; // ЖКХ или Акимат
+  scoring: IssueScoringCriteria;
+  completionRating?: number; // 1-5: оценка выполнения (для решённых)
+  completionNotes?: string;
+  statusHistory: Array<{
+    status: Issue["status"];
+    timestamp: Date;
+    note?: string;
+  }>;
 }
 
 interface IssuesContextType {
   issues: Issue[];
-  addIssue: (issue: Omit<Issue, "id" | "createdAt" | "supportCount" | "userSupported">) => void;
+  addIssue: (issue: Omit<Issue, "id" | "createdAt" | "supportCount" | "userSupported" | "status" | "statusHistory" | "scoring">) => void;
+  updateIssueStatus: (issueId: string, newStatus: Issue["status"], note?: string) => void;
+  updateIssueScoring: (issueId: string, scoring: IssueScoringCriteria) => void;
+  completeIssue: (issueId: string, rating: number, notes: string) => void;
   toggleSupport: (issueId: string) => void;
   getHyperLocalIssues: (residentialComplex: string, street: string) => Issue[];
-  getCityWideIssues: () => Issue[];
+  getCityWideIssues: (city?: string) => Issue[];
   getClusterIssues: (lat: number, lng: number, radiusKm: number) => Issue[];
 }
 
@@ -61,15 +84,74 @@ export function analyzePriority(issue: Issue): number {
 export function IssuesProvider({ children }: { children: ReactNode }) {
   const [issues, setIssues] = useState<Issue[]>(MOCK_ISSUES_DATA);
 
-  const addIssue = (issue: Omit<Issue, "id" | "createdAt" | "supportCount" | "userSupported">) => {
+  const addIssue = (issue: Omit<Issue, "id" | "createdAt" | "supportCount" | "userSupported" | "status" | "statusHistory" | "scoring">) => {
     const newIssue: Issue = {
       ...issue,
       id: `issue_${Date.now()}`,
       createdAt: new Date(),
       supportCount: 0,
       userSupported: false,
+      status: "new",
+      statusHistory: [{ status: "new", timestamp: new Date() }],
+      scoring: {
+        danger: 5,
+        location: 5,
+        relevance: 5,
+        scope: 5,
+        timeElapsed: 5,
+        convenience: 5,
+      },
     };
     setIssues([newIssue, ...issues]);
+  };
+
+  const updateIssueStatus = (issueId: string, newStatus: Issue["status"], note?: string) => {
+    setIssues((prev) =>
+      prev.map((issue) => {
+        if (issue.id === issueId) {
+          return {
+            ...issue,
+            status: newStatus,
+            statusHistory: [
+              ...issue.statusHistory,
+              { status: newStatus, timestamp: new Date(), note },
+            ],
+          };
+        }
+        return issue;
+      })
+    );
+  };
+
+  const updateIssueScoring = (issueId: string, scoring: IssueScoringCriteria) => {
+    setIssues((prev) =>
+      prev.map((issue) => {
+        if (issue.id === issueId) {
+          return { ...issue, scoring };
+        }
+        return issue;
+      })
+    );
+  };
+
+  const completeIssue = (issueId: string, rating: number, notes: string) => {
+    setIssues((prev) =>
+      prev.map((issue) => {
+        if (issue.id === issueId) {
+          return {
+            ...issue,
+            status: "completed",
+            completionRating: rating,
+            completionNotes: notes,
+            statusHistory: [
+              ...issue.statusHistory,
+              { status: "completed", timestamp: new Date(), note: notes },
+            ],
+          };
+        }
+        return issue;
+      })
+    );
   };
 
   const toggleSupport = (issueId: string) => {
@@ -115,7 +197,7 @@ export function IssuesProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <IssuesContext.Provider value={{ issues, addIssue, toggleSupport, getHyperLocalIssues, getCityWideIssues, getClusterIssues }}>
+    <IssuesContext.Provider value={{ issues, addIssue, updateIssueStatus, updateIssueScoring, completeIssue, toggleSupport, getHyperLocalIssues, getCityWideIssues, getClusterIssues }}>
       {children}
     </IssuesContext.Provider>
   );

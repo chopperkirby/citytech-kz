@@ -7,15 +7,16 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import { IssuesProvider } from "./contexts/IssuesContext";
 import Auth from "./pages/Auth";
+import CitySelect from "./pages/CitySelect";
 import Feed from "./pages/Feed";
 
 function Router() {
   return (
     <Switch>
+      <Route path="/" component={CitySelect} />
       <Route path="/auth" component={Auth} />
       <Route path="/feed" component={Feed} />
       <Route path="/404" component={NotFound} />
-      <Route path="" component={Auth} />
       <Route component={NotFound} />
     </Switch>
   );

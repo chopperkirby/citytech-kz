@@ -14,6 +14,7 @@ interface SubmitIssueModalProps {
     house: string;
     entrance: string;
   };
+  city?: string;
 }
 
 const CATEGORIES = [
@@ -116,6 +117,9 @@ export default function SubmitIssueModal({ onClose, userLocation }: SubmitIssueM
         lng: 76.9453 + (Math.random() - 0.5) * 0.1,
       };
 
+      // Determine routing based on category
+      const routedTo = category === "community" ? "zhkh" : "akimat";
+
       addIssue({
         title,
         description,
@@ -126,9 +130,11 @@ export default function SubmitIssueModal({ onClose, userLocation }: SubmitIssueM
         street: userLocation.street,
         house: userLocation.house,
         entrance: userLocation.entrance,
+        city: "Алматы",
         issueAge: 0,
         photoUrl: photoPreview,
         userDescription,
+        routedTo,
       });
 
       onClose();

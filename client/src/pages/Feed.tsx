@@ -6,18 +6,21 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import IssueCard from "@/components/IssueCard";
+import IssueDetails from "@/components/IssueDetails";
 import CityTechMap from "@/components/CityTechMap";
 import SubmitIssueModal from "@/components/SubmitIssueModal";
-import { LogOut, Plus, MapPin, Zap } from "lucide-react";
+import { LogOut, Plus, MapPin, Zap, Filter } from "lucide-react";
 import type { Issue } from "@/contexts/IssuesContext";
 
 export default function Feed() {
   const { user, logout } = useAuth();
-  const { getHyperLocalIssues, getCityWideIssues, toggleSupport } = useIssues();
+  const { issues, getHyperLocalIssues, getCityWideIssues, toggleSupport, updateIssueStatus, updateIssueScoring, completeIssue } = useIssues();
   const [, setLocation] = useLocation();
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [selectedCluster, setSelectedCluster] = useState<Issue[] | null>(null);
-  const [activeTab, setActiveTab] = useState("local");
+  const [activeTab, setActiveTab] = useState("active");
+  const [statusFilter, setStatusFilter] = useState<"all" | "new" | "pending_approval" | "in_progress" | "completed">("all");
+  const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
 
   if (!user) {
     setLocation("/auth");
@@ -26,6 +29,13 @@ export default function Feed() {
 
   const hyperLocalIssues = getHyperLocalIssues(user.residentialComplex, user.street);
   const cityWideIssues = getCityWideIssues();
+  
+  const activeIssues = issues.filter(i => i.status !== "completed");
+  const resolvedIssues = issues.filter(i => i.status === "completed");
+  
+  const filteredIssues = statusFilter === "all" 
+    ? activeIssues 
+    : activeIssues.filter(i => i.status === statusFilter);
 
   const handleLogout = () => {
     logout();
@@ -87,42 +97,88 @@ export default function Feed() {
           <div className="lg:col-span-1">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="grid w-full grid-cols-2 bg-slate-800 border border-slate-700">
-                <TabsTrigger value="local" className="data-[state=active]:bg-cyan-600 data-[state=active]:text-white">
-                  Мой ЖК
+                <TabsTrigger value="active" className="data-[state=active]:bg-cyan-600 data-[state=active]:text-white">
+                  Активные
                 </TabsTrigger>
-                <TabsTrigger value="city" className="data-[state=active]:bg-cyan-600 data-[state=active]:text-white">
-                  Город
+                <TabsTrigger value="resolved" className="data-[state=active]:bg-cyan-600 data-[state=active]:text-white">
+                  Решённые
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="local" className="space-y-4 mt-4">
-                {hyperLocalIssues.length === 0 ? (
+              <TabsContent value="active" className="space-y-4 mt-4">
+                {/* Status Filter */}
+                <div className="flex gap-2 flex-wrap">
+                  <Button
+                    size="sm"
+                    variant={statusFilter === "all" ? "default" : "outline"}
+                    onClick={() => setStatusFilter("all")}
+                    className={statusFilter === "all" ? "bg-cyan-600 hover:bg-cyan-700" : "border-slate-600 text-slate-300 hover:bg-slate-800"}
+                  >
+                    Все
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={statusFilter === "new" ? "default" : "outline"}
+                    onClick={() => setStatusFilter("new")}
+                    className={statusFilter === "new" ? "bg-cyan-600 hover:bg-cyan-700" : "border-slate-600 text-slate-300 hover:bg-slate-800"}
+                  >
+                    Новые
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={statusFilter === "pending_approval" ? "default" : "outline"}
+                    onClick={() => setStatusFilter("pending_approval")}
+                    className={statusFilter === "pending_approval" ? "bg-cyan-600 hover:bg-cyan-700" : "border-slate-600 text-slate-300 hover:bg-slate-800"}
+                  >
+                    На утверждении
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={statusFilter === "in_progress" ? "default" : "outline"}
+                    onClick={() => setStatusFilter("in_progress")}
+                    className={statusFilter === "in_progress" ? "bg-cyan-600 hover:bg-cyan-700" : "border-slate-600 text-slate-300 hover:bg-slate-800"}
+                  >
+                    На выполнении
+                  </Button>
+                </div>
+
+                {filteredIssues.length === 0 ? (
                   <Card className="p-8 text-center bg-slate-800/50 border-slate-700">
-                    <p className="text-slate-400">Нет проблем в вашем ЖК</p>
+                    <p className="text-slate-400">Нет активных проблем</p>
                   </Card>
                 ) : (
-                  hyperLocalIssues.map((issue) => (
-                    <IssueCard
+                  filteredIssues.map((issue) => (
+                    <div
                       key={issue.id}
-                      issue={issue}
-                      onSupport={toggleSupport}
-                    />
+                      onClick={() => setSelectedIssue(issue)}
+                      className="cursor-pointer"
+                    >
+                      <IssueCard
+                        issue={issue}
+                        onSupport={toggleSupport}
+                      />
+                    </div>
                   ))
                 )}
               </TabsContent>
 
-              <TabsContent value="city" className="space-y-4 mt-4">
-                {cityWideIssues.length === 0 ? (
+              <TabsContent value="resolved" className="space-y-4 mt-4">
+                {resolvedIssues.length === 0 ? (
                   <Card className="p-8 text-center bg-slate-800/50 border-slate-700">
-                    <p className="text-slate-400">Нет проблем в городе</p>
+                    <p className="text-slate-400">Нет решённых проблем</p>
                   </Card>
                 ) : (
-                  cityWideIssues.map((issue) => (
-                    <IssueCard
+                  resolvedIssues.map((issue) => (
+                    <div
                       key={issue.id}
-                      issue={issue}
-                      onSupport={toggleSupport}
-                    />
+                      onClick={() => setSelectedIssue(issue)}
+                      className="cursor-pointer"
+                    >
+                      <IssueCard
+                        issue={issue}
+                        onSupport={toggleSupport}
+                      />
+                    </div>
                   ))
                 )}
               </TabsContent>
@@ -152,6 +208,22 @@ export default function Feed() {
             street: user.street,
             house: user.house,
             entrance: user.entrance,
+          }}
+        />
+      )}
+
+      {/* Issue Details Modal */}
+      {selectedIssue && (
+        <IssueDetails
+          issue={selectedIssue}
+          onClose={() => setSelectedIssue(null)}
+          onUpdateStatus={(status, note) => {
+            updateIssueStatus(selectedIssue.id, status, note);
+            setSelectedIssue(null);
+          }}
+          onRateCompletion={(rating, notes) => {
+            completeIssue(selectedIssue.id, rating, notes);
+            setSelectedIssue(null);
           }}
         />
       )}
