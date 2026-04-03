@@ -36,7 +36,7 @@ export default function SubmitIssueModal({ onClose, city = "Алматы" }: Sub
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState<"critical" | "warning" | "community">("warning");
-  const [selectedLocation, setSelectedLocation] = useState<{ lat: number; lng: number } | null>(null);
+
   const [address, setAddress] = useState("");
   const [loading, setLoading] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
@@ -109,25 +109,15 @@ export default function SubmitIssueModal({ onClose, city = "Алматы" }: Sub
     }
   };
 
-  const handleMapClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
 
-    // Simple map click to location conversion (mock)
-    const lat = ALMATY_CENTER[0] + (Math.random() - 0.5) * 0.1;
-    const lng = ALMATY_CENTER[1] + (Math.random() - 0.5) * 0.1;
-
-    setSelectedLocation({ lat, lng });
-    setAddress(`ул. Абая, ${Math.floor(Math.random() * 200) + 1}, ${city}`);
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const finalLocation = selectedLocation || {
+      // Generate mock coordinates based on city
+      const finalLocation = {
         lat: ALMATY_CENTER[0] + (Math.random() - 0.5) * 0.1,
         lng: ALMATY_CENTER[1] + (Math.random() - 0.5) * 0.1,
       };
@@ -139,7 +129,7 @@ export default function SubmitIssueModal({ onClose, city = "Алматы" }: Sub
         description,
         category,
         location: finalLocation,
-        address: address || `${city}, Казахстан`,
+        address: address.trim(),
         residential_complex: city,
         street: "Не указана",
         house: "Не указана",
@@ -256,37 +246,27 @@ export default function SubmitIssueModal({ onClose, city = "Алматы" }: Sub
         {/* Step 3: Location Selection */}
         {step === "location" && (
           <div className="space-y-4">
-            <h3 className="font-semibold text-lg">Выберите местоположение</h3>
+            <h3 className="font-semibold text-lg">Введите адрес проблемы</h3>
 
-            <div
-              onClick={handleMapClick}
-              className="w-full h-48 bg-slate-800 border border-slate-600 rounded-lg cursor-crosshair flex items-center justify-center relative overflow-hidden"
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-slate-700 to-slate-800"></div>
-              <div className="relative text-center">
-                <MapPin className="w-12 h-12 mx-auto text-cyan-400 mb-2" />
-                <p className="text-slate-300">Нажмите на карту, чтобы выбрать место</p>
-              </div>
-
-              {selectedLocation && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="bg-cyan-500 rounded-full w-8 h-8 border-4 border-white shadow-lg flex items-center justify-center">
-                    <MapPin className="w-4 h-4 text-white" />
-                  </div>
-                </div>
-              )}
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">Адрес</label>
+              <Input
+                type="text"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                placeholder="ул. Абая, 123, кв. 45, Алматы"
+                className="bg-slate-800 border-slate-600 text-white placeholder-slate-500"
+              />
+              <p className="text-xs text-slate-400 mt-2">Укажите улицу, номер дома, квартиру и город</p>
             </div>
 
-            {selectedLocation && (
-              <div className="p-3 bg-slate-800 border border-slate-600 rounded-lg">
-                <p className="text-sm text-slate-400 mb-1">Адрес:</p>
-                <p className="text-white font-semibold">{address}</p>
-              </div>
-            )}
+            <div className="p-3 bg-cyan-900/20 border border-cyan-700 rounded-lg text-cyan-300 text-sm">
+              <p>✓ Адрес будет использован для маршрутизации в ЖКХ или Акимат</p>
+            </div>
 
             <Button
               onClick={() => setStep("review")}
-              disabled={!selectedLocation}
+              disabled={!address.trim()}
               className="w-full bg-cyan-600 hover:bg-cyan-700"
             >
               Далее
