@@ -10,6 +10,7 @@ import IssueDetails from "@/components/IssueDetails";
 import CityTechMap from "@/components/CityTechMap";
 import SubmitIssueModal from "@/components/SubmitIssueModal";
 import { LogOut, Plus, MapPin, Zap, Filter } from "lucide-react";
+import { useEffect } from "react";
 import type { Issue } from "@/contexts/IssuesContext";
 
 export default function Feed() {
@@ -22,8 +23,13 @@ export default function Feed() {
   const [statusFilter, setStatusFilter] = useState<"all" | "new" | "pending_approval" | "in_progress" | "completed">("all");
   const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
 
+  useEffect(() => {
+    if (!user) {
+      setLocation("/auth");
+    }
+  }, [user, setLocation]);
+
   if (!user) {
-    setLocation("/auth");
     return null;
   }
 
